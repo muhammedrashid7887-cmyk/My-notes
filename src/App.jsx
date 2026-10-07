@@ -1,61 +1,62 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import AddNote from './components/AddNote';
 import StoreNote from './components/StoreNote';
 import Search from './components/Search';
+import { useNotes } from './contexts/NotesContext';
 
 function App() {
+  const {
+    notes,
+    loading,
+    error,
+    createNote,
+    deleteNote,
+    searchNotes,
+  } = useNotes();
 
-  const [result, setResult] = useState([]);
   const [search, setSearch] = useState("");
 
-  // Get notes from Local Storage
-  useEffect(() => {
-    const savedNotes = localStorage.getItem("notes");
-
-    if (savedNotes) {
-      setResult(JSON.parse(savedNotes));
-    }
-  }, []);
-
-  // Add Note
-  const handleAdd = (title, dis) => {
-
-    const newResult = [...result, { title, dis }];
-
-    setResult(newResult);
-
-    localStorage.setItem(
-      "notes",
-      JSON.stringify(newResult)
-    );
+  const handleSearch = (query) => {
+    setSearch(query);
+    searchNotes(query);
   };
 
-  // Remove Note
-  const handleRemove = (index) => {
-
-    const newResult = result.filter((_, i) => i !== index);
-
-    setResult(newResult);
-
-    localStorage.setItem(
-      "notes",
-      JSON.stringify(newResult)
-    );
+  const handleAdd = async (title, dis) => {
+    await createNote({
+      title,
+      content: dis,
+      dis,
+      color: "yellow",
+      tags: [],
+      archived: false,
+    });
   };
 
-  // Search
-  const filteredResult = result.filter((item) =>
-    item.title.toLowerCase().includes(search.toLowerCase())
-  );
+  const handleRemove = async (id) => {
+    await deleteNote(id);
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 px-4 py-8">
+      {/* Error display */}
+      {error && (
+        <div className="max-w-2xl mx-auto mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg text-center">
+          {error}
+        </div>
+      )}
 
       {/* Search */}
       <Search
         search={search}
-        setSearch={setSearch}
+        setSearch={handleSearch}
       />
+
+      {/* Loading Spinner */}
+      {loading && (
+        <div className="flex justify-center items-center py-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
+        </div>
+      )}
 
       {/* Add box hide when searching */}
       {search === "" && (
@@ -64,10 +65,9 @@ function App() {
 
       {/* Notes */}
       <StoreNote
-        result={filteredResult}
+        result={notes}
         handleRemove={handleRemove}
       />
-
     </div>
   );
 }

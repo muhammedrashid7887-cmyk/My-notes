@@ -1,24 +1,31 @@
 import React, { useState } from 'react';
+import { useNotes } from '../contexts/NotesContext';
 
 function AddNote(props) {
-
+  const { createNote } = useNotes();
   const [title, setTitle] = useState("");
   const [dis, setDis] = useState("");
 
-  const handle = () => {
-      if (title.trim() === "" || dis.trim() === "") {
-    return;
-  }
-    props.handleAdd(title, dis);
+  const handle = async () => {
+    if (title.trim() === "" || dis.trim() === "") {
+      return;
+    }
+    if (props.handleAdd) {
+      await props.handleAdd(title, dis);
+    } else {
+      await createNote({
+        title: title.trim(),
+        content: dis.trim(),
+        dis: dis.trim(),
+      });
+    }
     setTitle("");
     setDis("");
   };
 
   return (
     <div className="max-w-2xl mt-1 mx-auto">
-
       <div className="bg-white rounded-2xl shadow-md p-6">
-
         <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">
           My Notebook
         </h1>
@@ -30,7 +37,6 @@ function AddNote(props) {
           }}
           className="space-y-5"
         >
-
           <div>
             <label className="block font-semibold text-gray-700 mb-2">
               Title :
@@ -64,11 +70,8 @@ function AddNote(props) {
           >
             Add
           </button>
-
         </form>
-
       </div>
-
     </div>
   );
 }
